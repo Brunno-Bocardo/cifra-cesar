@@ -1,5 +1,8 @@
-# Aluno: Brunno Perez Bocardo
-## API Cifra de Vernam
+# Alunos: 
+- Brunno Perez Bocardo
+- Stephany Tucunduva Santos Miguel
+---
+# API Cifra de Cesar
 
 Linguagem utilizada: Go
 
@@ -14,23 +17,44 @@ O endpoins podem ser testados via CURL ou Postman.
 1) [POST] /cifrar
 - http://localhost:8080/cifrar
 - Body JSON:
+```
 {
-    "textoClaro": "malfeito feito",
-    "chave": "CHGENPKTGLPCMW"
+    "textoClaro": "HELLO WORLD",
+    "deslocamento": 3
 }
+```
 - Reponse esperada:
 {
-    "textoCifrado": "0010111000101001001010110010001100101011001110010011111100111011011001110010101000110101001010100011100100111000"
+    "textoCifrado": "KHOOR ZRUOG"
 }
 
 2) [POST] /decifrar
 - http://localhost:8080/decifrar
 - Body JSON:
+```
 {
-    "textoCifrado": "0010111000101001001010110010001100101011001110010011111100111011011001110010101000110101001010100011100100111000",
-    "chave": "CHGENPKTGLPCMW"
+    "textoCifrado": "KHOOR ZRUOG",
+    "deslocamento": 3
 }
+```
 - Response esperada:
+```
 {
-    "textoClaro": "MALFEITO FEITO"
+    "textoClaro": "HELLO WORLD"
 }
+```
+
+3) [POST] /decifrarForcaBruta
+- http://localhost:8080/decifrarForcaBruta
+- Body JSON:
+```
+{
+    "textoCifrado": "KHOOR ZRUOG"
+}
+```
+- Response esperada:
+```
+{
+    "textoClaro": "HELLO WORLD"
+}
+```
