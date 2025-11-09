@@ -7,6 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"regexp"
+	"strings"
+	"time"
 )
 
 // /cifrar 
@@ -131,17 +135,18 @@ func decifrarCesarForcaBruta(writer http.ResponseWriter, response *http.Request)
 		http.Error(writer, "JSON inválido", http.StatusBadRequest)
 		return
 	}
-
-	// Validações básicas
 	if mensagem.TextoCifrado == "" {
 		http.Error(writer, "Texto cifrado não pode ser vazio", http.StatusBadRequest)
 		return
 	}
 
-	// aplicar descifra forçada
-	resultado := "teste funciona 3"
+	textoClaro, err := tentarForcaBruta(mensagem.TextoCifrado)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	resp := ForcaBrutaCesarResponse{TextoClaro: resultado}
+	resp := ForcaBrutaCesarResponse{TextoClaro: textoClaro}
 	writer.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(writer).Encode(resp)
 }
@@ -174,7 +179,6 @@ func removerAcentos(texto string) string {
     }
     return resultado
 }
-
 
 
 func aplicarCifraCesar(texto string, deslocamento int) (string, error) {
@@ -241,4 +245,79 @@ func aplicarDescifraCesar(textoCifrado string, deslocamento int) (string, error)
 	}
 
 	return resultado, nil
+}
+
+
+// ---------------- FUNÇÕES DE FORÇA BRUTA (simples) ----------------
+func tentarForcaBruta(textoCifrado string) (string, error) {
+	client := &http.Client{Timeout: 3 * time.Second}
+
+	// tentar deslocamentos 1..25
+	for desloc := 1; desloc <= 25; desloc++ {
+		decifrado, err := aplicarDescifraCesar(textoCifrado, desloc)
+		if err != nil {
+			continue
+		}
+		// extrair palavras (apenas A-Z/a-z)
+		words := extrairPalavras(decifrado)
+		if len(words) == 0 {
+			continue
+		}
+
+		// verificar cada palavra no dicionário (apenas status 200)
+		todasOk := true
+		for _, w := range words {
+			if w == "" {
+				continue
+			}
+			// dicionário não lida com acento no seu fluxo atual; removemos acentos para a consulta
+			wSemAcento := strings.ToLower(removerAcentos(w))
+			ok := existeNoDicionario(client, wSemAcento)
+			if !ok {
+				todasOk = false
+				break
+			} 
+		}
+
+		if todasOk {
+			return decifrado, nil
+		}
+	}
+
+	return "", fmt.Errorf("não foi possível encontrar uma chave válida")
+}
+
+
+var rePalavra = regexp.MustCompile(`[A-Za-z]+`)
+func extrairPalavras(s string) []string {
+	return rePalavra.FindAllString(s, -1)
+}
+
+
+func existeNoDicionario(client *http.Client, palavra string) bool {
+	if palavra == "" {
+		return false
+	}
+	u := "https://api.dicionario-aberto.net/word/" + url.PathEscape(palavra)
+	fmt.Println("Consultando dicionário para palavra:", palavra)
+	fmt.Println("Consultando URL:", u)
+
+	resp, err := client.Get(u)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	// A API retorna 200 com "[]" quando não encontra.
+	// Não precisamos inspecionar o conteúdo; só checamos se há ao menos 1 item.
+	var payload []json.RawMessage
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return false
+	}
+	fmt.Println("Payload length:", len(payload))
+	return len(payload) > 0
 }
