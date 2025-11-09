@@ -149,8 +149,37 @@ func decifrarCesarForcaBruta(writer http.ResponseWriter, response *http.Request)
 
 
 // ---------------- FUNÇÕES AUXILIARES ----------------
+func removerAcentos(texto string) string {
+    acento := map[rune]rune{
+        'á': 'a', 'à': 'a', 'ã': 'a', 'â': 'a', 'ä': 'a',
+        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+        'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+        'ó': 'o', 'ò': 'o', 'õ': 'o', 'ô': 'o', 'ö': 'o',
+        'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
+        'ç': 'c',
+        'Á': 'A', 'À': 'A', 'Ã': 'A', 'Â': 'A', 'Ä': 'A',
+        'É': 'E', 'È': 'E', 'Ê': 'E', 'Ë': 'E',
+        'Í': 'I', 'Ì': 'I', 'Î': 'I', 'Ï': 'I',
+        'Ó': 'O', 'Ò': 'O', 'Õ': 'O', 'Ô': 'O', 'Ö': 'O',
+        'Ú': 'U', 'Ù': 'U', 'Û': 'U', 'Ü': 'U',
+        'Ç': 'C',
+    }
+    resultado := ""
+    for _, r := range texto {
+        if novo, ok := acento[r]; ok {
+            resultado += string(novo)
+        } else {
+            resultado += string(r)
+        }
+    }
+    return resultado
+}
+
+
+
 func aplicarCifraCesar(texto string, deslocamento int) (string, error) {
 	resultado := ""
+	texto = removerAcentos(texto)
 
 	// percorremos cada caractere do texto
 	for _, char := range texto {
