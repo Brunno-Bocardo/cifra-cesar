@@ -14,45 +14,45 @@ Linguagem utilizada: Go
 ### Endpoints disponíveis:
 O endpoins podem ser testados via CURL ou Postman.
 
-1) [POST] /cifrar
-- http://localhost:8080/cifrar
-- Body JSON:
+#### 1) [POST] /cifrar
+http://localhost:8080/cifrar
+Body JSON:
 ```
 {
     "textoClaro": "HELLO WORLD",
     "deslocamento": 3
 }
 ```
-- Reponse esperada:
+Reponse esperada:
 {
     "textoCifrado": "KHOOR ZRUOG"
 }
 
-2) [POST] /decifrar
-- http://localhost:8080/decifrar
-- Body JSON:
+#### 2) [POST] /decifrar
+http://localhost:8080/decifrar
+Body JSON:
 ```
 {
     "textoCifrado": "KHOOR ZRUOG",
     "deslocamento": 3
 }
 ```
-- Response esperada:
+Response esperada:
 ```
 {
     "textoClaro": "HELLO WORLD"
 }
 ```
 
-3) [POST] /decifrarForcaBruta
-- http://localhost:8080/decifrarForcaBruta
-- Body JSON:
+#### 3) [POST] /decifrarForcaBruta
+http://localhost:8080/decifrarForcaBruta
+Body JSON:
 ```
 {
     "textoCifrado": "KHOOR ZRUOG"
 }
 ```
-- Response esperada:
+Response esperada:
 ```
 {
     "textoClaro": "HELLO WORLD"
