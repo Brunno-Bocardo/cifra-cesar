@@ -167,9 +167,11 @@ func aplicarCifraCesar(texto string, deslocamento int) (string, error) {
 		} else if char >= 'A' && char <= 'Z' {
 			novoChar := ((int(char-'A') + deslocamento) % 26) + int('A')
 			resultado += string(rune(novoChar))
-		} else if char == ' ' {
-			// o único caractere fora do alfabeto permitido é o espaço: ' '
-			resultado += " "
+		} else if int(char) >= 32 || int(char) <= 57 {
+			// consideramos alguns caracteres fora do alfabeto permitido, como o espaço, números e pontuações
+			// nesse caso, apenas os adicionamos ao resultado sem alteração
+			// fonte: https://www.ime.usp.br/~kellyrb/mac2166_2015/tabela_ascii.html
+			resultado += string(char)
 		} else {
 			// se utilizado um caractere fora de A-Z ou espaço, retorna um erro no endpoint
 			return "", fmt.Errorf("caractere inválido: %c", char)
@@ -198,9 +200,11 @@ func aplicarDescifraCesar(textoCifrado string, deslocamento int) (string, error)
 		} else if char >= 'A' && char <= 'Z' {
 			novoChar := ((int(char-'A') - deslocamento + 26) % 26) + int('A')
 			resultado += string(rune(novoChar))
-		} else if char == ' ' {
-			// o único caractere fora do alfabeto permitido é o espaço: ' '
-			resultado += " "
+		} else if int(char) >= 32 || int(char) <= 57 {
+			// consideramos alguns caracteres fora do alfabeto permitido, como o espaço, números e pontuações
+			// nesse caso, apenas os adicionamos ao resultado sem alteração
+			// fonte: https://www.ime.usp.br/~kellyrb/mac2166_2015/tabela_ascii.html
+			resultado += string(char)
 		} else {
 			// se utilizado um caractere fora de A-Z ou espaço, retorna um erro no endpoint
 			return "", fmt.Errorf("caractere inválido: %c", char)
