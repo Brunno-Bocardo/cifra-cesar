@@ -69,8 +69,11 @@ func cifrarCesar(writer http.ResponseWriter, response *http.Request) {
 	}
 
 	// aplicar cifra
-	// textoCifrado := cifrarVernam(mensagem.TextoClaro, mensagem.Chave)
-	textoCifrado := "teste funciona"
+	textoCifrado, err := aplicarCifraCesar(mensagem.TextoClaro, mensagem.Deslocamento)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	resp := CifrarCesarResponse{TextoCifrado: textoCifrado}
 	writer.Header().Set("Content-Type", "application/json")
@@ -102,10 +105,14 @@ func decifrarCesar(writer http.ResponseWriter, response *http.Request) {
 		return
 	}
 
-	// aplicar descifra
-	resultado := "teste funciona 2"
+	// decifrar Cesar
+	textoClaro, err := aplicarDescifraCesar(mensagem.TextoCifrado, mensagem.Deslocamento)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	resp := DecifrarCesarResponse{TextoClaro: resultado}
+	resp := DecifrarCesarResponse{TextoClaro: textoClaro}
 	writer.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(writer).Encode(resp)
 }
@@ -139,3 +146,66 @@ func decifrarCesarForcaBruta(writer http.ResponseWriter, response *http.Request)
 	_ = json.NewEncoder(writer).Encode(resp)
 }
 
+
+
+// ---------------- FUNÇÕES AUXILIARES ----------------
+func aplicarCifraCesar(texto string, deslocamento int) (string, error) {
+	resultado := ""
+
+	// percorremos cada caractere do texto
+	for _, char := range texto {
+		
+		// aqui, iremos tratar apenas letras maiúsculas e minúsculas do alfabeto inglês
+		// no caso, na linguaguem Go, os caracteres são representados por seus códigos Unicode (runes), ou ASCII
+		// sendo assim, podemos fazer operações matemáticas com eles, considerando que 'a' = 97, 'b' = 98, ..., 'z' = 122
+		// dessa forma, o deslocamento também pode ser aplicado matematicamente
+		// Exemplo: para cifrar 'a' com deslocamento 3, fazemos: 'a' = 97 -> (97 - 97 + 3) % 26 + 97 = 100 -> 'd'
+
+		if char >= 'a' && char <= 'z' {
+			novoChar := ((int(char-'a') + deslocamento) % 26) + int('a')
+			resultado += string(rune(novoChar))
+		} else if char >= 'A' && char <= 'Z' {
+			novoChar := ((int(char-'A') + deslocamento) % 26) + int('A')
+			resultado += string(rune(novoChar))
+		} else if char == ' ' {
+			// o único caractere fora do alfabeto permitido é o espaço: ' '
+			resultado += " "
+		} else {
+			// se utilizado um caractere fora de A-Z ou espaço, retorna um erro no endpoint
+			return "", fmt.Errorf("caractere inválido: %c", char)
+		}
+	}
+
+	return resultado, nil
+}
+
+
+func aplicarDescifraCesar(textoCifrado string, deslocamento int) (string, error) {
+	resultado := ""
+
+	// percorremos cada caractere do texto cifrado
+	for _, char := range textoCifrado {
+		
+		// aqui, iremos tratar apenas letras maiúsculas e minúsculas do alfabeto inglês
+		// no caso, na linguaguem Go, os caracteres são representados por seus códigos Unicode (runes), ou ASCII
+		// sendo assim, podemos fazer operações matemáticas com eles, considerando que 'a' = 97, 'b' = 98, ..., 'z' = 122
+		// dessa forma, o deslocamento também pode ser aplicado matematicamente
+		// Exemplo: para decifrar 'd' com deslocamento 3, fazemos: 'd' = 100 -> (100 - 97 - 3 + 26) % 26 + 97 = 97 -> 'a'
+
+		if char >= 'a' && char <= 'z' {
+			novoChar := ((int(char-'a') - deslocamento + 26) % 26) + int('a')
+			resultado += string(rune(novoChar))
+		} else if char >= 'A' && char <= 'Z' {
+			novoChar := ((int(char-'A') - deslocamento + 26) % 26) + int('A')
+			resultado += string(rune(novoChar))
+		} else if char == ' ' {
+			// o único caractere fora do alfabeto permitido é o espaço: ' '
+			resultado += " "
+		} else {
+			// se utilizado um caractere fora de A-Z ou espaço, retorna um erro no endpoint
+			return "", fmt.Errorf("caractere inválido: %c", char)
+		}
+	}
+
+	return resultado, nil
+}
