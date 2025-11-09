@@ -273,7 +273,10 @@ func tentarForcaBruta(textoCifrado string) (string, error) {
 			// dicionário não lida com acento no seu fluxo atual; removemos acentos para a consulta
 			wSemAcento := strings.ToLower(removerAcentos(w))
 			ok := existeNoDicionario(client, wSemAcento)
+
+			// aqui vemos se a palavra existe no dicionário
 			if !ok {
+				// no caso, se ela não existir, podemos consultar um arquivo exerno de palavras
 				todasOk = false
 				break
 			} 
