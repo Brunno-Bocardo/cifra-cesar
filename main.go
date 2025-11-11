@@ -11,7 +11,40 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"bufio" //deixa a leitura do arquivo mais rapida
+	"os" // Para abrir o arquivo e para sair do programa 
 )
+//guardar todas as palavras sem acento do dicionario 
+var dicionarioLocal map[string]bool
+
+//-----------Função para carregar o Dicionário Local------------
+
+func carregarDicionarioLocal(caminhoDicionario string) (map[string]bool, error){
+	mapa := make(map[string]bool)
+
+	arquivo, err := os.Open(caminhoDicionario)
+	if err != nil {
+		return nil, fmt.Errorf("nao foi possivel abrir o arquivo %s: %w", caminhoDicionario, err)
+	}
+	defer arquivo.Close()
+
+	// Lê o arquivo linha por linha
+	scanner := bufio.NewScanner(arquivo)
+	for scanner.Scan() {
+		// Pega a palavra, remove espaços e converte para minúsculas
+		palavra := strings.ToLower(strings.TrimSpace(scanner.Text()))
+		if palavra != "" {
+			mapa[palavra] = true 
+		}
+	}
+	//verifica se teve algum erro na leitura
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("erro ao ler o arquivo %s: %w", caminhoDicionario, err)
+	}
+
+	return mapa, nil
+} 
+	
 
 // /cifrar 
 type CifrarCesar struct {
@@ -41,6 +74,21 @@ type ForcaBrutaCesarResponse struct {
 
 
 func main() {
+
+	var err error
+
+	//define o nome do arquivo do dicionário
+	arquivoDicionario := "palavras_sem_acento.txt"
+
+	dicionarioLocal, err = carregarDicionarioLocal(arquivoDicionario)
+	if err != nil {
+		// Se o dicionário não puder ser carregado, o programa não deve rodar.
+		fmt.Fprintf(os.Stderr, "Erro fatal ao carregar dicionario local (%s): %v\n", arquivoDicionario, err)
+	}
+
+	// Confirmar que funcionou
+	fmt.Printf("Dicionario local carregado com %d palavras.\n", len(dicionarioLocal))
+
 	http.HandleFunc("/cifrar", cifrarCesar)
 	http.HandleFunc("/decifrar", decifrarCesar)
 	http.HandleFunc("/decifrarForcaBruta", decifrarCesarForcaBruta)
@@ -273,6 +321,13 @@ func tentarForcaBruta(textoCifrado string) (string, error) {
 			// dicionário não lida com acento no seu fluxo atual; removemos acentos para a consulta
 			wSemAcento := strings.ToLower(removerAcentos(w))
 			ok := existeNoDicionario(client, wSemAcento)
+
+			// Se a API falhar, tenta o dicionário local
+			if !ok {
+				if _, existeLocal := dicionarioLocal[wSemAcento]; existeLocal {
+					ok = true 
+				}
+			}
 
 			// aqui vemos se a palavra existe no dicionário
 			if !ok {
