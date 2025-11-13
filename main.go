@@ -313,7 +313,7 @@ func tentarForcaBruta(textoCifrado string) (string, error) {
 		}
 
 		// verificar cada palavra no dicionário (apenas status 200)
-		todasOk := true
+		palavrasCorretas := 0
 		for _, w := range words {
 			if w == "" {
 				continue
@@ -332,12 +332,18 @@ func tentarForcaBruta(textoCifrado string) (string, error) {
 			// aqui vemos se a palavra existe no dicionário
 			if !ok {
 				// no caso, se ela não existir, podemos consultar um arquivo exerno de palavras
-				todasOk = false
-				break
-			} 
+				continue
+			} else {
+				palavrasCorretas++
+			}
 		}
-
-		if todasOk {
+		
+		fmt.Println("- palavras:", len(words))
+		fmt.Println("- palavras corretas:", palavrasCorretas)
+		if len(words) == 2 && palavrasCorretas == 2 {
+			return decifrado, nil
+		}
+		if len(words) != 2 && palavrasCorretas >= ((len(words) + 1) / 2) {
 			return decifrado, nil
 		}
 	}
